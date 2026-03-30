@@ -248,3 +248,8 @@ All user-supplied data is validated with `express-validator` at the route level 
 ### Centralised Error Handler
 
 All unhandled errors bubble up to `errorHandler.js` middleware, ensuring a consistent JSON error format regardless of where in the stack an exception is thrown.
+
+### Swagger 
+
+<img width="1366" height="612" alt="Screenshot (1360)" src="https://github.com/user-attachments/assets/6a3ab875-1651-4b8f-9eed-a3acd4430f82" />
+
