@@ -1,0 +1,257 @@
+{
+  "info": {
+    "name": "Event Management API",
+    "description": "Postman collection for the Event Management API. Import this collection and set the `baseUrl` variable to your server URL (default: http://localhost:3000).",
+    "_postman_id": "b1c2d3e4-f5a6-7890-abcd-ef1234567890",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "bookingCode",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated after creating a booking"
+    }
+  ],
+  "item": [
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "List upcoming events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            },
+            "description": "Returns all events with a date in the future, ordered by date ascending."
+          },
+          "response": [
+            {
+              "name": "200 OK – upcoming events",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Tech Conference 2026\",\n      \"description\": \"Annual technology conference covering AI, cloud, and DevOps.\",\n      \"date\": \"2026-06-15T09:00:00.000Z\",\n      \"total_capacity\": 200,\n      \"remaining_tickets\": 200,\n      \"created_at\": \"2026-01-01T00:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('eventId', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tech Conference 2026\",\n  \"description\": \"Annual technology conference covering AI, cloud, and DevOps.\",\n  \"date\": \"2026-06-15T09:00:00.000Z\",\n  \"total_capacity\": 200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            },
+            "description": "Creates a new event. `date` must be a future ISO 8601 datetime."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 4,\n    \"title\": \"Tech Conference 2026\",\n    \"description\": \"Annual technology conference covering AI, cloud, and DevOps.\",\n    \"date\": \"2026-06-15T09:00:00.000Z\",\n    \"total_capacity\": 200,\n    \"remaining_tickets\": 200,\n    \"created_at\": \"2026-03-29T10:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\n  \"success\": false,\n  \"errors\": [\n    {\n      \"type\": \"field\",\n      \"msg\": \"title is required.\",\n      \"path\": \"title\",\n      \"location\": \"body\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('bookingCode', json.data.booking_code);",
+                  "  console.log('booking_code saved:', json.data.booking_code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 1,\n  \"event_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            },
+            "description": "Books a ticket for user 1 on event 1. A unique booking_code (UUID v4) is generated and the remaining_tickets count is decremented atomically."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"user_id\": 1,\n    \"event_id\": 1,\n    \"booking_date\": \"2026-03-29T10:00:00.000Z\",\n    \"booking_code\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"event_title\": \"Tech Conference 2026\",\n    \"event_date\": \"2026-06-15T09:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "409 No tickets",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"No tickets available for this event.\"\n}"
+            },
+            {
+              "name": "409 Duplicate booking",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User has already booked this event.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get user bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/1/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1", "bookings"]
+            },
+            "description": "Returns all bookings for user with ID 1, including event details and attendance status."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"Alice Johnson\",\n      \"email\": \"alice@example.com\"\n    },\n    \"bookings\": [\n      {\n        \"id\": 1,\n        \"booking_code\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"booking_date\": \"2026-03-29T10:00:00.000Z\",\n        \"event_id\": 1,\n        \"event_title\": \"Tech Conference 2026\",\n        \"event_description\": \"Annual technology conference covering AI, cloud, and DevOps.\",\n        \"event_date\": \"2026-06-15T09:00:00.000Z\",\n        \"attended\": false\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "404 User not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Check in (attend event)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_code\": \"{{bookingCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events/1/attendance",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "1", "attendance"]
+            },
+            "description": "Checks in a user using their booking code. The `bookingCode` variable is auto-populated by the 'Create booking' request. Returns the updated remaining_tickets count."
+          },
+          "response": [
+            {
+              "name": "201 Check-in successful",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Check-in successful.\",\n  \"data\": {\n    \"event_id\": 1,\n    \"event_title\": \"Tech Conference 2026\",\n    \"user_id\": 1,\n    \"remaining_tickets\": 199\n  }\n}"
+            },
+            {
+              "name": "404 Invalid booking code",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid booking code for this event.\"\n}"
+            },
+            {
+              "name": "409 Already checked in",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User has already checked in to this event.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Simple liveness check."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{ \"status\": \"ok\" }"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

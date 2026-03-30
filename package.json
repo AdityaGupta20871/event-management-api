@@ -1,0 +1,22 @@
+{
+  "name": "event-management-api",
+  "version": "1.0.0",
+  "description": "Event Management API",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "uuid": "^9.0.0",
+    "swagger-ui-express": "^5.0.0",
+    "js-yaml": "^4.1.0",
+    "dotenv": "^16.3.1",
+    "express-validator": "^7.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
